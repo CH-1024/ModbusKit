@@ -1,0 +1,21 @@
+﻿<Window x:Class="ModbusSimulator.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:prism="http://prismlibrary.com/"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        Title="ModbusSimulator" Height="400" Width="600" >
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </Window.Resources>
+
+    <UniformGrid Rows="2" Columns="2" Margin="20">
+        <Button Content="SerialMaster" Command="{Binding OpenWindowCMD}" CommandParameter="SerialMaster"/>
+        <Button Content="SerialSlave" Command="{Binding OpenWindowCMD}" CommandParameter="SerialSlave"/>
+        <Button Content="TcpMaster" Command="{Binding OpenWindowCMD}" CommandParameter="TcpMaster"/>
+        <Button Content="TcpSlave" Command="{Binding OpenWindowCMD}" CommandParameter="TcpSlave"/>
+    </UniformGrid>
+</Window>
