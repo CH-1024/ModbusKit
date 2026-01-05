@@ -15,7 +15,7 @@ namespace ModbusKit.Utils
 {
     public class ModbusKitMaster : IDisposable
     {
-        readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
 
         int _delay = 20;
@@ -92,15 +92,19 @@ namespace ModbusKit.Utils
             _endian = endian;
         }
 
+
         public void SetDelay(int delay)
         {
             _delay = delay;
         }
 
+
         public void Dispose()
         {
             _master?.Dispose();
-            //_master = null;
+            _master = null;
+            _semaphoreSlim?.Dispose();
+            _semaphoreSlim = null;
         }
 
 

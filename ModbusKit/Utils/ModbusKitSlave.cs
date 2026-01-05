@@ -16,8 +16,9 @@ namespace ModbusKit.Utils
 {
     public class ModbusKitSlave : IDisposable
     {
-        readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-
+        SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        CancellationTokenSource _cts;
+        public bool IsListening { get; private set; }
 
         int _delay = 0;
         EndianOrder _endian = EndianOrder.BigEndian;
@@ -113,8 +114,12 @@ namespace ModbusKit.Utils
 
         public void StartListen()
         {
-            Task.Run(async() =>
+            IsListening = true;
+
+            Task.Run(async () =>
             {
+                Exception err = null;
+                _cts = new CancellationTokenSource();
                 try
                 {
                     _dataStore.CoilDiscretes.StorageOperationOccurred += CoilDiscretesRequestReceived;
@@ -122,18 +127,27 @@ namespace ModbusKit.Utils
                     _dataStore.InputRegisters.StorageOperationOccurred += InputRegistersRequestReceived;
                     _dataStore.HoldingRegisters.StorageOperationOccurred += HoldingRegistersRequestReceived;
 
-                    await _slaveNetwork.ListenAsync();
+                    await _slaveNetwork.ListenAsync(_cts.Token);
                 }
                 catch (Exception e)
+                {
+                    err = e;
+                }
+                finally
                 {
                     _dataStore.CoilDiscretes.StorageOperationOccurred -= CoilDiscretesRequestReceived;
                     _dataStore.CoilInputs.StorageOperationOccurred -= CoilInputsRequestReceived;
                     _dataStore.InputRegisters.StorageOperationOccurred -= InputRegistersRequestReceived;
                     _dataStore.HoldingRegisters.StorageOperationOccurred -= HoldingRegistersRequestReceived;
 
-                    Disconnect(e);
+                    Disconnect(err);
                 }
-            });
+            }).ContinueWith(t => IsListening = false);
+        }
+
+        public void Stop()
+        {
+            _cts.Cancel();
         }
 
         public void SetEndian(EndianOrder endian)
@@ -149,7 +163,13 @@ namespace ModbusKit.Utils
         public void Dispose()
         {
             _slaveNetwork?.Dispose();
-            //_dataStore = null;
+            _slaveNetwork = null;
+            _dataStore = null;
+            _slave = null;
+            _cts?.Dispose();
+            _cts = null;
+            _semaphoreSlim?.Dispose();
+            _semaphoreSlim = null;
         }
 
 
