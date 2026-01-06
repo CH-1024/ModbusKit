@@ -1,13 +1,136 @@
-﻿ModbusKit 是一个基于 .NET Standard 2.0 的 Modbus 协议工具库，主要功能和要求如下：
-要求：
-•	依赖 NModbus 和 NModbus.Serial（3.x 版本）
-•	支持 .NET Standard 2.0，可用于 .NET Core、.NET Framework 及 .NET 5/6/7/8 等平台
-•	需要 System.IO.Ports 和 System.Text.Encoding.CodePages 支持串口和编码
-主要功能：
-•	支持 Modbus RTU、TCP、UDP 主站（Master）和从站（Slave）通信
-•	提供串口和网络（TCP/UDP）方式的主站/从站创建方法
-•	支持大端/小端字节序设置
-•	支持读写线圈、离散量、输入寄存器、保持寄存器等常用 Modbus 功能
-•	支持异步操作和线程安全
-•	提供事件回调，便于监控寄存器请求
-适合用于工业自动化、设备通信等场景的 Modbus 协议开发。
+﻿
+# ModbusKit
+
+Github:[https://github.com/CH-1024/ModbusKit](https://github.com/CH-1024/ModbusKit)
+
+// Master Example
+```
+public class UcMasterViewModel : BindableBase
+{
+    ModbusKitMaster _master;
+    string Type;
+
+    private void Connect()
+    {
+        try
+        {
+            if (Type == "Serial")
+            {
+                _master = ModbusKitMaster.CreateSerialMaster(port, baudRate, parity, dataBits, stopBits);
+            }
+
+            if (Type == "Tcp")
+            {
+                _master = ModbusKitMaster.CreateTcpMaster(ip, port);
+            }
+
+            if (Type == "Udp")
+            {
+                _master = ModbusKitMaster.CreateUdpMaster(ip, port);
+            }
+
+            _master.SetEndian(EndianOrder.BigEndian);
+            _master.SetDelay(20);
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    private async Task Send()
+    {
+        await _master.Write_Single_Int32_ToHoldingRegisters(slaveId, address1, "123");
+        int v1 = await _master.Read_Single_Int32_FromHoldingRegisters(slaveId, address1);
+
+        await _master.Write_Multi_Int32_ToHoldingRegisters(slaveId, address2, ["1234", "2345", "3456"]);
+        List<int> v2 = await _master.Read_Multi_Int32_FromHoldingRegisters(slaveId, address2, 3);
+
+        await _master.Write_Multi_ASCII_ToHoldingRegisters(slaveId, address3, "ASCII String");
+        string str = await _master.Read_Multi_ASCII_FromHoldingRegisters(slaveId, address3, 50);    // "ASCII String"
+    }
+}
+```
+
+// Slave Example
+```
+public class UcSlaveViewModel : BindableBase, IDialogAware
+{
+    ModbusKitSlave _slave;
+    string Type;
+
+
+    private void OnHoldingRegisterRequestReceived(StorageEventArgs<ushort> args)
+    {
+    }
+
+    private void OnDisconnect(Exception e)
+    {
+        if (e != null) Log(e.Message);
+
+        if (_slave != null)
+        {
+            _slave.OnHoldingRegisterRequestReceived -= OnHoldingRegisterRequestReceived;
+            _slave.OnDisconnect -= OnDisconnect;
+        }
+
+        _slave?.Dispose();
+        _slave = null;
+    }
+
+    private void Listen()
+    {
+        if (_slave?.IsListening == true)
+        {
+            return;
+        }
+
+        try
+        {
+            if (Type == "Serial")
+            {
+                _slave = ModbusKitSlave.CreateSerialSlave(slaveId, port, baudRate, parity, dataBits, stopBits);
+            }
+
+            if (Type == "Tcp")
+            {
+                _slave = ModbusKitSlave.CreateTcpSlave(slaveId, ip, port);
+            }
+
+            if (Type == "Udp")
+            {
+                _slave = ModbusKitSlave.CreateUdpSlave(slaveId, port);
+            }
+
+            _slave.SetEndian(EndianOrder.BigEndian);
+            _slave.SetDelay(0);
+
+            _slave.OnHoldingRegisterRequestReceived += OnHoldingRegisterRequestReceived;
+            _slave.OnDisconnect += OnDisconnect;
+
+            _slave.StartListen();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    private void Close()
+    {
+        _slave?.Stop();
+    }
+
+    private async Task Send()
+    {
+        await _master.Write_Single_Int32_ToHoldingRegisters(address1, "123");
+        int v1 = await _master.Read_Single_Int32_FromHoldingRegisters(address1);
+
+        await _master.Write_Multi_Int32_ToHoldingRegisters(address2, ["1234", "2345", "3456"]);
+        List<int> v2 = await _master.Read_Multi_Int32_FromHoldingRegisters(address2, 3);
+
+        await _master.Write_Multi_ASCII_ToHoldingRegisters(address3, "ASCII String");
+        string str = await _master.Read_Multi_ASCII_FromHoldingRegisters(address3, 50);    // "ASCII String"
+    }
+
+
+}
+```
