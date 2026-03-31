@@ -27,11 +27,11 @@ namespace ModbusKit.Utils
         IModbusSlave _slave;
         IModbusSlaveNetwork _slaveNetwork;
 
-        public Action<StorageEventArgs<bool>> OnCoilDiscreteRequestReceived { get; set; }
-        public Action<StorageEventArgs<bool>> OnCoilInputRequestReceived { get; set; }
-        public Action<StorageEventArgs<ushort>> OnInputRegisterRequestReceived { get; set; }
-        public Action<StorageEventArgs<ushort>> OnHoldingRegisterRequestReceived { get; set; }
-        public Action<Exception> OnDisconnect { get; set; }
+        public event Action<StorageEventArgs<bool>> OnCoilDiscreteRequestReceived;
+        public event Action<StorageEventArgs<bool>> OnCoilInputRequestReceived;
+        public event Action<StorageEventArgs<ushort>> OnInputRegisterRequestReceived;
+        public event Action<StorageEventArgs<ushort>> OnHoldingRegisterRequestReceived;
+        public event Action<Exception> OnDisconnect;
 
 
 

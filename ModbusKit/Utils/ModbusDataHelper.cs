@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ModbusKit.Utils
 {
-    public static class ModbusDataHelper
+    internal static class ModbusDataHelper
     {
-        public static ushort GetTypeSize(DataType type)
+        internal static ushort GetTypeSize(DataType type)
         {
             switch (type)
             {
@@ -32,7 +32,7 @@ namespace ModbusKit.Utils
             }
         }
 
-        public static string ConvertBytesToValue(byte[] bytes, DataType type)
+        internal static string ConvertBytesToValue(byte[] bytes, DataType type)
         {
             switch (type)
             {
@@ -63,13 +63,13 @@ namespace ModbusKit.Utils
             }
         }
 
-        public static T ConvertBytesToValue<T>(byte[] bytes, DataType type)
+        internal static T ConvertBytesToValue<T>(byte[] bytes, DataType type)
         {
             var valStr = ConvertBytesToValue(bytes, type);
             return (T)Convert.ChangeType(valStr, typeof(T));
         }
 
-        public static byte[] ConvertValueToBytes(string value, DataType type)
+        internal static byte[] ConvertValueToBytes(string value, DataType type)
         {
             switch (type)
             {
@@ -100,13 +100,13 @@ namespace ModbusKit.Utils
             }
         }
 
-        //public static byte[] ConvertValueToBytes(object value, DataType type)
+        //internal static byte[] ConvertValueToBytes(object value, DataType type)
         //{
         //    var valStr = Convert.ToString(value);
         //    return ConvertValueToBytes(valStr, type);
         //}
 
-        public static Dictionary<int, byte[]> ConvertRegistersToBytes(DataType type, ushort[] allRegisters, EndianOrder order)
+        internal static Dictionary<int, byte[]> ConvertRegistersToBytes(DataType type, ushort[] allRegisters, EndianOrder order)
         {
             ushort size = GetTypeSize(type);
             var dic = new Dictionary<int, byte[]>();
@@ -224,7 +224,7 @@ namespace ModbusKit.Utils
             return dic;
         }
 
-        public static ushort[] ConvertBytesToRegisters(DataType type, Dictionary<int, byte[]> dic, EndianOrder order)
+        internal static ushort[] ConvertBytesToRegisters(DataType type, Dictionary<int, byte[]> dic, EndianOrder order)
         {
             ushort size = GetTypeSize(type);
             var allRegisters = new List<ushort>();
@@ -312,14 +312,14 @@ namespace ModbusKit.Utils
             return allRegisters.ToArray();
         }
 
-        public static T ConvertRegistersToValue<T>(DataType type, ushort[] allRegisters, EndianOrder order)
+        internal static T ConvertRegistersToValue<T>(DataType type, ushort[] allRegisters, EndianOrder order)
         {
             var dic = ConvertRegistersToBytes(type, allRegisters, order);
 
             return ConvertBytesToValue<T>(dic[0], type);
         }
 
-        public static ushort[] ConvertValueToRegisters(string value, DataType type, EndianOrder order)
+        internal static ushort[] ConvertValueToRegisters(string value, DataType type, EndianOrder order)
         {
             var bytes = ConvertValueToBytes(value, type);
 
